@@ -5,13 +5,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.practical_android.database.AppDatabase;
+import com.example.practical_android.database.ProductDao;
 import com.example.practical_android.entity.Product;
+
+import java.util.List;
 
 public class AddProductActivity extends AppCompatActivity {
 
@@ -19,15 +23,16 @@ public class AddProductActivity extends AppCompatActivity {
     Button btnAdd;
     EditText etName,etQuantity;
     AppDatabase db;
-    Context context;
+    ProductDao productDao ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_product);
         initData();
         initListener();
-        db = AppDatabase.getAppDatabase(this);
-        context = this;
+//        getAllProduct();
+        db  = AppDatabase.buildDatabaseInstance(  this, "android_exam" , false);
+        Toast.makeText(this,  db.doesDatabaseExist(this,"android_exam"), Toast.LENGTH_SHORT).show();
     }
 
     private void initData() {
@@ -41,20 +46,18 @@ public class AddProductActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String productName = etName.getText().toString();
-                String quantity = etQuantity.getText().toString();
-                try {
-                    Product product = new Product();
-                    product.setName(productName);
-                    product.setQuantity(Integer.parseInt(quantity));
-                    db.productDao().insertProduct(product);
-                    CharSequence charSequence = "Successfully !";
-                    Toast toast = Toast.makeText(getApplicationContext(), charSequence, Toast.LENGTH_LONG);
-                    toast.show();
-                    context.startActivity(new Intent(context, MainActivity.class));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                int  quantity = Integer.parseInt(etQuantity.getText().toString());
+                Product  p  = new Product(productName , quantity) ;
+                addProduct(p);
+                Intent intent = new Intent(AddProductActivity.this , MainActivity.class);
+                startActivity(intent);
             }
         });
     }
+    void addProduct(Product p ){
+        productDao = db.productDao() ;
+        productDao.add(p);
+        Toast.makeText(this, "inserted", Toast.LENGTH_SHORT).show();
+    }
+
 }
